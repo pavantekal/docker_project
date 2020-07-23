@@ -1,0 +1,20 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t pavantekal/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run pavantekal/react-test npm test -- --coverage
+
+after_success:
+    - docker build -t pavantekal/multi-docker-client ./client
+    - docker build -t pavantekal/multi-docker-nginx  ./nginx
+    - docker build -t pavantekal/multi-docker-server ./server
+    - docker build -t pavantekal/multi-docker-worker ./worker
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker push pavantekal/multi-docker-client
+    - docker push pavantekal/multi-docker-nginx
+    - docker push pavantekal/multi-docker-server
+    - docker push pavantekal/multi-docker-worker
